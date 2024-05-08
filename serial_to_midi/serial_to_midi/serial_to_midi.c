@@ -23,7 +23,6 @@ int main() {
     }
 
     HMIDIOUT hMidiDevice;
-    //MMRESULT result;
     UINT deviceID = 0;
 
     printf("Which device to open? (empty for 0): ");
@@ -35,19 +34,16 @@ int main() {
         }
     }
 
-    UINT IDCopy = deviceID;
-
     result = midiOutOpen(&hMidiDevice,
         deviceID,      
         (DWORD_PTR)NULL,
         (DWORD_PTR)NULL,
         CALLBACK_NULL);
 
-
     if (result != MMSYSERR_NOERROR) {
         wchar_t errorText[256];
         midiOutGetErrorText(result, errorText, sizeof(errorText)/sizeof(wchar_t));
-        printf("ERROR: Failed to open MIDI device with ID %u! Error code: %u, Message: %ls\n", IDCopy, result, errorText);
+        printf("ERROR: Failed to open MIDI device with ID %u! Error code: %u, Message: %ls\n", deviceID, result, errorText);
         Sleep(5000);
         return -1;
     }
