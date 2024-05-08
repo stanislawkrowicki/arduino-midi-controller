@@ -12,10 +12,10 @@ int main() {
     printf("Number of MIDI Input Devices: %u\n", numMidiOutDevices);
 
     for (UINT i = 0; i < numMidiOutDevices; ++i) {
-        result = midiOutGetDevCapsA(i, &midiOutCaps, sizeof(MIDIOUTCAPS));
+        result = midiOutGetDevCaps(i, &midiOutCaps, sizeof(MIDIOUTCAPS));
         if (result == MMSYSERR_NOERROR) {
             printf("Device ID: %u\n", i);
-            printf("Name: %s\n", midiOutCaps.szPname);
+            printf("Name: %ls\n", midiOutCaps.szPname);
         }
         else {
             printf("Failed to get device capabilities for device ID %u\n", i);
@@ -39,8 +39,8 @@ int main() {
 
     result = midiOutOpen(&hMidiDevice,
         deviceID,      
-        (DWORD)NULL,
-        (DWORD)NULL,
+        (DWORD_PTR)NULL,
+        (DWORD_PTR)NULL,
         CALLBACK_NULL);
 
 
