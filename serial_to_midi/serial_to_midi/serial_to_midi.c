@@ -1,5 +1,6 @@
 ﻿#include <windows.h>
 #include <stdio.h>
+#include <mmsystem.h>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -37,10 +38,9 @@ int main() {
     UINT IDCopy = deviceID;
 
     result = midiOutOpen(&hMidiDevice,
-        &deviceID,
-        1,           
-        (DWORD_PTR)NULL,
-        (DWORD_PTR)NULL,
+        deviceID,      
+        (DWORD)NULL,
+        (DWORD)NULL,
         CALLBACK_NULL);
 
 
