@@ -45,9 +45,9 @@ int main() {
 
 
     if (result != MMSYSERR_NOERROR) {
-        char errorText[1024];
-        midiOutGetErrorTextA(result, errorText, sizeof(errorText));
-        printf("ERROR: Failed to open MIDI device with ID %u! Error code: %u, Message: %s\n", IDCopy, result, errorText);
+        wchar_t errorText[256];
+        midiOutGetErrorText(result, errorText, sizeof(errorText)/sizeof(wchar_t));
+        printf("ERROR: Failed to open MIDI device with ID %u! Error code: %u, Message: %ls\n", IDCopy, result, errorText);
         Sleep(5000);
         return -1;
     }
