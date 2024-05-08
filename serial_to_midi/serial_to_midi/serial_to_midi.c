@@ -4,6 +4,36 @@
 
 #pragma comment(lib, "winmm.lib")
 
+#define NOTE_ON 0b10010000
+#define NOTE_OFF 0b10000000
+
+
+typedef union _MIDI_MESSAGE
+{
+    DWORD dMessage;
+    WORD wMessage[2];
+    byte bMessage[4];
+} MIDI_MESSAGE;
+
+static void safeMessage(HMIDIOUT hMidiDevice, MIDI_MESSAGE msg) {
+    MMRESULT result = midiOutShortMsg(hMidiDevice, msg.dMessage);
+
+    if (result != MMSYSERR_NOERROR) {
+        wchar_t errorText[256];
+        midiOutGetErrorText(result, errorText, sizeof(errorText) / sizeof(wchar_t));
+        printf("ERROR: Failed to send message. Error code: %u, Message: %ls\n", result, errorText);
+    }
+}
+
+static void noteOn(HMIDIOUT hMidiDevice, DWORD note, DWORD velocity) {
+    MIDI_MESSAGE message;
+    message.bMessage[0] = NOTE_ON;
+    message.bMessage[1] = 50;
+    message.bMessage[2] = 127;
+
+    safeMessage(hMidiDevice, message);
+}
+
 int main() {
     UINT numMidiOutDevices = midiOutGetNumDevs();
     MIDIOUTCAPS midiOutCaps;
@@ -44,12 +74,16 @@ int main() {
         wchar_t errorText[256];
         midiOutGetErrorText(result, errorText, sizeof(errorText)/sizeof(wchar_t));
         printf("ERROR: Failed to open MIDI device with ID %u! Error code: %u, Message: %ls\n", deviceID, result, errorText);
-        Sleep(5000);
         return -1;
     }
 
     printf("Device %d opened succesfully.\n", deviceID);
-    Sleep(5000);
+    
+    while (1) {
+        printf("MIDI OUT: Ch %d: Note %d on velocity %d\n", 1, 50, 127);
+        noteOn(hMidiDevice, 50, 127);
+        Sleep(5000);    
+    }
 
     return 0;
 }
