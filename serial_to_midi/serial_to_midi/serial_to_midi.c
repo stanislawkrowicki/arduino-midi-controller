@@ -1,12 +1,9 @@
 ﻿#include <windows.h>
 #include <stdio.h>
 #include <mmsystem.h>
+#include "../../MIDI_COMMANDS.h"
 
 #pragma comment(lib, "winmm.lib")
-
-#define NOTE_ON 0b10010000
-#define NOTE_OFF 0b10000000
-
 
 typedef union _MIDI_MESSAGE
 {

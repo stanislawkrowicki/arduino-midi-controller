@@ -1,0 +1,9 @@
+#ifndef MIDI_COMMANDS_H_
+
+#define MIDI_COMMANDS_H_
+
+#define NOTE_ON 0b10010000
+#define NOTE_OFF 0b10000000
+#define PROGRAM_CHANGE 0b11000000
+
+#endif
