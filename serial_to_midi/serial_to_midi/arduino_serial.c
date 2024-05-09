@@ -1,15 +1,8 @@
 #include <windows.h>
 #include <stdio.h>
+#include "arduino_serial.h"
 
-
-int main() {
-    LPCWSTR portName = L"COM6";
-    HANDLE hSerial;
-    DCB dcbSerialParams = { 0 };
-    COMMTIMEOUTS timeouts = { 0 };
-    DWORD bytesRead;
-    char buffer[256] = { 0 };
-
+int openPort(LPCWSTR portName, HANDLE* hSerial) {
     hSerial = CreateFileW(portName,
         GENERIC_READ,
         0,
@@ -18,61 +11,48 @@ int main() {
         FILE_ATTRIBUTE_NORMAL,
         NULL);
 
-    if (hSerial == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "Error opening serial port\n");
-        return 1;
-    }
+    if (hSerial == INVALID_HANDLE_VALUE)
+        return 1; // Error opening serial port
 
+    return 0;
+}
+
+
+int setupDevice(HANDLE hSerial, DCB dcbSerialParams, COMMTIMEOUTS timeouts) {
     dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
     if (!GetCommState(hSerial, &dcbSerialParams)) {
-        fprintf(stderr, "Error getting device state\n");
         CloseHandle(hSerial);
-        return 1;
+        return 1; // Error getting device state
     }
-
-    dcbSerialParams.BaudRate = CBR_115200;
-    dcbSerialParams.ByteSize = 8;
-    dcbSerialParams.StopBits = ONESTOPBIT;
-    dcbSerialParams.Parity = NOPARITY;
 
     if (!SetCommState(hSerial, &dcbSerialParams)) {
-        fprintf(stderr, "Error setting device parameters\n");
         CloseHandle(hSerial);
-        return 1;
+        return 2; // Error setting device parameters
     }
-
-    timeouts.ReadIntervalTimeout = 50;
-    timeouts.ReadTotalTimeoutConstant = 50;
-    timeouts.ReadTotalTimeoutMultiplier = 10;
-    timeouts.WriteTotalTimeoutConstant = 50;
-    timeouts.WriteTotalTimeoutMultiplier = 10;
 
     if (!SetCommTimeouts(hSerial, &timeouts)) {
-        fprintf(stderr, "Error setting timeouts\n");
         CloseHandle(hSerial);
-        return 1;
+        return 3; // Error setting timeouts
     }
 
-    printf("Successfully opened device on port %ls\n", portName);
-
-    while (1) {
-        if (!ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL)) {
-            fprintf(stderr, "Error reading from serial port\n");
-            CloseHandle(hSerial);
-            return 1;
-        }
-
-        if (bytesRead <= 0)
-            continue;
-
-        if (buffer == "EXITMIDICOMM")
-            break;
-
-        buffer[bytesRead] = '\0';
-        printf("Read %ld bytes: %s\n", bytesRead, buffer);
-        //PurgeComm(hSerial, PURGE_RXCLEAR);
-    }
-
-    CloseHandle(hSerial);
     return 0;
+}
+
+
+int readPort(HANDLE hSerial, char *buffer, int *bytesRead) {
+    if (!ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL)) {
+        CloseHandle(hSerial);
+        return 2; // Error reading from serial port
+    }
+
+    if (&buffer == "EXITMIDICOMM")
+        return 1; // Device wants to close connection
+
+    buffer[*bytesRead] = '\0';
+    return 0; // Success
+}
+
+
+void closePort(HANDLE hSerial) {
+    CloseHandle(hSerial);
 }
