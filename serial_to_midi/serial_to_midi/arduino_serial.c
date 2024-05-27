@@ -2,8 +2,15 @@
 #include <stdio.h>
 #include "arduino_serial.h"
 
+typedef union _MIDI_MESSAGE
+{
+    DWORD dMessage;
+    WORD wMessage[2];
+    byte bMessage[4];
+} MIDI_MESSAGE;
+
 int openPort(LPCWSTR portName, HANDLE* hSerial) {
-    hSerial = CreateFileW(portName,
+    *hSerial = CreateFileW(portName,
         GENERIC_READ,
         0,
         NULL,
@@ -11,7 +18,7 @@ int openPort(LPCWSTR portName, HANDLE* hSerial) {
         FILE_ATTRIBUTE_NORMAL,
         NULL);
 
-    if (hSerial == INVALID_HANDLE_VALUE)
+    if (*hSerial == INVALID_HANDLE_VALUE)
         return 1; // Error opening serial port
 
     return 0;
@@ -38,20 +45,43 @@ int setupDevice(HANDLE hSerial, DCB dcbSerialParams, COMMTIMEOUTS timeouts) {
     return 0;
 }
 
-
-int readPort(HANDLE hSerial, char *buffer, int *bytesRead) {
-    if (!ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL)) {
-        CloseHandle(hSerial);
-        return 2; // Error reading from serial port
-    }
-
-    if (&buffer == "EXITMIDICOMM")
-        return 1; // Device wants to close connection
-
-    buffer[*bytesRead] = '\0';
-    return 0; // Success
+int serialRead(HANDLE hSerial, char* buffer, int bytesToRead, int* bytesRead) {
+    return !ReadFile(hSerial, buffer, bytesToRead, bytesRead, NULL);
 }
 
+int serialReadMessage(HANDLE hSerial, int *message, int *bytesRead) {
+    int messagesIncoming = 0;
+    int command = 0;
+    int param1 = 0;
+    int param2 = 0;
+
+    if (serialRead(hSerial, &messagesIncoming, 1, bytesRead))
+        return 1; // Error reading from serial port
+
+    if (*bytesRead == 0)
+        return 0;
+
+    if (messagesIncoming == 3) {
+        if (serialRead(hSerial, &command, 1, NULL))
+            return 1; // Error reading from serial port
+        if (serialRead(hSerial, &param1, 1, NULL))
+            return 1; // Error reading from serial port
+        if (serialRead(hSerial, &param2, 1, NULL))
+            return 1; // Error reading from serial port
+    }
+    else if (messagesIncoming == 2) {
+        if (serialRead(hSerial, &command, 1, NULL))
+            return 1; // Error reading from serial port
+        if (serialRead(hSerial, &param1, 1, NULL))
+            return 1; // Error reading from serial port
+    }
+
+    message[0] = command;
+    message[1] = param1;
+    message[2] = param2;
+
+    return 0;
+}
 
 void closePort(HANDLE hSerial) {
     CloseHandle(hSerial);

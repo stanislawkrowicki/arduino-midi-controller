@@ -23,14 +23,25 @@ int openPort(LPCWSTR portName, HANDLE* hSerial);
 int setupDevice(HANDLE hSerial, DCB dcbSerialParams, COMMTIMEOUTS timeouts);
 
 /**
- * Reads serial written at port
+ * Reads bytesToRead bytes written at port.
  *
  * @param hSerial Device handler
- * @param *buffer String buffer to be filled. The buffer is already \0 terminated (doesn't count to bytesRead).
+ * @param *buffer String buffer to be filled. The buffer is \0 terminated.
+ * @param bytesToRead How many bytes to read from port
  * @param *bytesRead Number of bytes read to be filled
- * @return Status code: 0 - success, 1 - Close connection signal sent (you should close the port yourself now), 2 - Error reading from the serial port
+ * @return Status code: 0 - success, 1 - Error reading from the serial port
  */
-int readPort(HANDLE hSerial, char* buffer, int* bytesRead);
+int serialRead(HANDLE hSerial, char* buffer, int bytesToRead, int* bytesRead);
+
+/**
+ * Reads serial written at port. Every packet should be preceded by packet size (one byte).
+ *
+ * @param hSerial Device handler
+ * @param *message Array of 3 ints: command, param1, param2.
+ * @param *bytesRead Number of bytes read to be filled. Does not count the size byte.
+ * @return Status code: 0 - success, 1 - Error reading from the serial port
+ */
+int serialReadMessage(HANDLE hSerial, int* message, int* bytesRead);
 
 /**
  * Closes the serial port

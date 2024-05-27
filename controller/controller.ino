@@ -17,13 +17,18 @@ void setup()
 void sendMessage(unsigned int command, int param1, int param2)
 {
     char buffer[32];
+    int size = 0;
+    int messagesIncoming = 3;
+
+    if (param2 < 0)
+        messagesIncoming = 2;
+
+    Serial.write(messagesIncoming);
+    Serial.write(command);
+    Serial.write(param1);
 
     if (param2 >= 0)
-        snprintf(buffer, 32, "%d %d %d", command, param1, param2);
-    else
-        snprintf(buffer, 32, "%d %d", command, param1);
-
-    Serial.print(buffer);
+        Serial.write(param2);
 }
 
 void noteOn(unsigned int note, unsigned int velocity)
@@ -50,11 +55,8 @@ void setNotePressed(unsigned int note, unsigned int status)
 
 void loop()
 {
-    int potValue = analogRead(POT);
-    float noteOffset = potValue * (5.0 / 1024.0);
-
     uint8_t middleC = 60;
-    uint8_t note = middleC + noteOffset;
+    uint8_t note = middleC;
 
     if (digitalRead(2) == LOW && !wasNotePressedLastTick(note))
         noteOn(note, 127);
