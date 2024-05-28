@@ -1,12 +1,19 @@
 #include "MIDI_COMMANDS.h"
 
-#define POT PIN_A0
+#define VOLUME_POT PIN_A0
+#define FIRST_BUTTON 2
 
 bool notePressedLastTick[107];
 
+int notes[8] = {NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_C2};
+
 void setup()
 {
-    pinMode(2, INPUT_PULLUP);
+    for (int i = FIRST_BUTTON; i <= FIRST_BUTTON + 8; i++)
+    {
+        pinMode(i, INPUT_PULLUP);
+    }
+
     Serial.begin(115200);
 
     for (int i = 0; i < sizeof(notePressedLastTick); i++)
@@ -16,8 +23,6 @@ void setup()
 // If you don't want to send param2, set it to -1
 void sendMessage(unsigned int command, int param1, int param2)
 {
-    char buffer[32];
-    int size = 0;
     int messagesIncoming = 3;
 
     if (param2 < 0)
@@ -55,11 +60,23 @@ void setNotePressed(unsigned int note, unsigned int status)
 
 void loop()
 {
-    uint8_t middleC = 60;
-    uint8_t note = middleC;
+    uint8_t keyOffset = 4;
+    uint8_t octaveOffset = 1;
 
-    if (digitalRead(2) == LOW && !wasNotePressedLastTick(note))
-        noteOn(note, 127);
-    else if (digitalRead(2) == HIGH && wasNotePressedLastTick(note))
-        noteOff(note, 127);
+    int potValue = analogRead(VOLUME_POT);
+    uint8_t volume = map(potValue, 0, 1023, 0, 127);
+
+    for (int i = FIRST_BUTTON; i <= FIRST_BUTTON + 8; i++)
+    {
+        uint8_t note = notes[i - FIRST_BUTTON] + keyOffset + (12 * octaveOffset);
+
+        if (digitalRead(i) == LOW && !wasNotePressedLastTick(note))
+        {
+            noteOn(note, volume);
+        }
+        else if (digitalRead(i) == HIGH && wasNotePressedLastTick(note))
+        {
+            noteOff(note, volume);
+        }
+    }
 }

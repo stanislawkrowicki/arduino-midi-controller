@@ -17,6 +17,7 @@ typedef union _MIDI_MESSAGE
 static void safeMessage(HMIDIOUT hMidiDevice, MIDI_MESSAGE msg) {
     MMRESULT result = midiOutShortMsg(hMidiDevice, msg.dMessage);
 
+    //printf("MIDI Command: %d %d %d\n", msg.bMessage[0], msg.bMessage[1], msg.bMessage[2]);
     if (result != MMSYSERR_NOERROR) {
         wchar_t errorText[256];
         midiOutGetErrorText(result, errorText, sizeof(errorText) / sizeof(wchar_t));
@@ -25,7 +26,7 @@ static void safeMessage(HMIDIOUT hMidiDevice, MIDI_MESSAGE msg) {
 }
 
 static void noteOn(HMIDIOUT hMidiDevice, DWORD note, DWORD velocity) {
-    MIDI_MESSAGE message;
+    MIDI_MESSAGE message = { .dMessage = "" };
     message.bMessage[0] = NOTE_ON;
     message.bMessage[1] = 50;
     message.bMessage[2] = 127;
@@ -113,17 +114,16 @@ int main() {
     while (1) {
         int status = serialReadMessage(hSerial, message, &bytesRead);
 
-        if (status > 0) {
+        if (status != 0) {
             printf("Failed to read message! Code: %d", status);
             return 1;
         }
 
         if (bytesRead > 0) {
-            MIDI_MESSAGE midiMessage;
+            MIDI_MESSAGE midiMessage = { .dMessage = "" };
             midiMessage.bMessage[0] = message[0];
             midiMessage.bMessage[1] = message[1];
             midiMessage.bMessage[2] = message[2];
-
             safeMessage(hMidiDevice, midiMessage);
         }
     }

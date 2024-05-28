@@ -2,13 +2,6 @@
 #include <stdio.h>
 #include "arduino_serial.h"
 
-typedef union _MIDI_MESSAGE
-{
-    DWORD dMessage;
-    WORD wMessage[2];
-    byte bMessage[4];
-} MIDI_MESSAGE;
-
 int openPort(LPCWSTR portName, HANDLE* hSerial) {
     *hSerial = CreateFileW(portName,
         GENERIC_READ,
