@@ -4,8 +4,10 @@
 #include <string.h>
 #include "../../MIDI_COMMANDS.h"
 #include "arduino_serial.h"
+#include <wchar.h>
 
 #pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "OneCore.lib")
 
 typedef union _MIDI_MESSAGE
 {
@@ -79,12 +81,52 @@ int main() {
 
     printf("Device %d opened succesfully.\n", deviceID);
 
+    ULONG lpPortNumbers[25];
+    ULONG portNumbersFound = 0;
+
+    ULONG portSeekRes = GetCommPorts(lpPortNumbers, 25, &portNumbersFound);
+
+    if (portSeekRes == ERROR_FILE_NOT_FOUND) {
+        printf("There are no available COM ports to open.\n");
+        midiOutClose(hMidiDevice);
+        Sleep(10000);
+    }
+    else if (portSeekRes == ERROR_MORE_DATA) {
+        printf("There was more available COM ports than expected. Some ports may not be visible.\n");
+    }
+
+    printf("Available COM ports:\n");
+
+    for (int i = 0; i < portNumbersFound; i++) {
+        printf("COM%d\n", lpPortNumbers[i]);
+    }
+
+    printf("Which port to open? Empty for first possible (COM%d): ", lpPortNumbers[0]);
+
+    wchar_t comPort[8];
+
+    if (fgetws(comPort, sizeof(comPort) / sizeof(wchar_t), stdin) != NULL) {
+        // Remove the newline character if it exists
+        size_t len = wcslen(comPort);
+        if (len > 0 && comPort[len - 1] == L'\n') {
+            comPort[len - 1] = L'\0';
+        }
+
+        if (comPort[0] == L'\0') {
+            swprintf(comPort, sizeof(comPort) / sizeof(wchar_t), L"COM%d", lpPortNumbers[0]);
+        }
+    }
+
     HANDLE hSerial;
-    int uartRes = openPort(L"COM6", &hSerial);
+    int uartRes = openPort(comPort, &hSerial);
 
     if (uartRes != 0) {
-        printf("Error while opening port COM6. Error code: %d\n", uartRes);
+        // TODO: Change showing error code to error message
+        wprintf(L"Error while opening port %ls. Error code: %d\n", comPort, uartRes);
         return -1;
+    }
+    else {
+        wprintf(L"Port %ls opened successfully.\n", comPort);
     }
 
     DCB dcbSerialParams = { 0 };
