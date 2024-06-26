@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <mmsystem.h>
 #include <string.h>
-#include "../../MIDI_COMMANDS.h"
 #include "arduino_serial.h"
 #include <wchar.h>
 
@@ -19,21 +18,15 @@ typedef union _MIDI_MESSAGE
 static void safeMessage(HMIDIOUT hMidiDevice, MIDI_MESSAGE msg) {
     MMRESULT result = midiOutShortMsg(hMidiDevice, msg.dMessage);
 
-    //printf("MIDI Command: %d %d %d\n", msg.bMessage[0], msg.bMessage[1], msg.bMessage[2]);
+    #ifdef _DEBUG
+    printf("MIDI Command: %d %d %d\n", msg.bMessage[0], msg.bMessage[1], msg.bMessage[2]);
+    #endif
+    
     if (result != MMSYSERR_NOERROR) {
         wchar_t errorText[256];
         midiOutGetErrorText(result, errorText, sizeof(errorText) / sizeof(wchar_t));
         printf("ERROR: Failed to send message. Error code: %u, Message: %ls\n", result, errorText);
     }
-}
-
-static void noteOn(HMIDIOUT hMidiDevice, DWORD note, DWORD velocity) {
-    MIDI_MESSAGE message = { .dMessage = "" };
-    message.bMessage[0] = NOTE_ON;
-    message.bMessage[1] = 50;
-    message.bMessage[2] = 127;
-
-    safeMessage(hMidiDevice, message);
 }
 
 int main() {
@@ -121,7 +114,6 @@ int main() {
     int uartRes = openPort(comPort, &hSerial);
 
     if (uartRes != 0) {
-        // TODO: Change showing error code to error message
         wprintf(L"Error while opening port %ls. Error code: %d\n", comPort, uartRes);
         return -1;
     }
