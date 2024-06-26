@@ -1,13 +1,18 @@
-# Project in Arduino - MIDI Controller
-
-# The project will involve creating a simple MIDI Controller (digital piano) using Arduino Uno.
+# A simple MIDI Controller (digital piano) using Arduino Uno.
 
 ### Features:
-    - volume potentiometer,
-    - on/off switch,
     - piano keys,
-    - drum pads,
-    - mode/preset switch,
+    - volume potentiometer,
     - a standalone program in C that works as a bridge between Arduino's serial and a MIDI port
 
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/-NWUEIha)
+### Creating a MIDI port
+#### To create a virtual MIDI port, I used a program called [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)
+
+### How does it work?
+#### Arduino sends MIDI-like signals through serial port, that are then read by serial_to_midi C program, converted to MIDI signals and sent over selected MIDI port.
+
+#### This solution suffers from [debouncing](https://www.techtarget.com/whatis/definition/debouncing). If you wanted to upgrade it a bit, you could use something like a [Schmitt Trigger](https://en.wikipedia.org/wiki/Schmitt_trigger) to get rid of it.
+
+![image info](./img/controller.jpg)
+
+https://youtu.be/5DVNKoiFiPI
