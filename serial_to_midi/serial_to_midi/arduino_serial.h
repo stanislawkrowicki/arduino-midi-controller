@@ -16,7 +16,7 @@ int openPort(LPCWSTR portName, HANDLE* hSerial);
  * Setups connection params and timeouts
  *
  * @param hSerial Device handler
- * @param dcbSerialParams 
+ * @param dcbSerialParams
  * @params timeouts
  * @return Error code: 0 - success, 1 - Error getting device state, 2 - Error setting device parameters, 3 - Error setting timeouts
  */
